@@ -133,7 +133,7 @@ const ProfileCard = () => {
 
         {/* Hide extra fields */}
         <input type="hidden" name="_captcha" value="false" />
-        <input type="hidden" name="_next" value="https://Mangesh46.github.io/myprofile/thankyou.html" />
+        <input type="hidden" name="_next" value="https://Mangesh46.github.io/profileweb/thankyou.html" />
 
         <button
           type="submit"
