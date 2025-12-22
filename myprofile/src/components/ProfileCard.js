@@ -554,24 +554,13 @@ const ProfileCard = () => {
                 overflow: 'hidden'
               }}>
                 <img
-                  src={`${process.env.PUBLIC_URL}/resume_photo.jpeg`}
+                  src={`${process.env.PUBLIC_URL}/resume_photo.png`}
                   alt="Mangesh Sarde"
                   style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    borderRadius: '50%'
-                  }}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `data:image/svg+xml,${encodeURIComponent(`
-                      <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="200" height="200" fill="%230f172a"/>
-                        <path d="M100 50C70 50 50 70 50 100C50 130 70 150 100 150C130 150 150 130 150 100C150 70 130 50 100 50Z" fill="%23667eea"/>
-                        <path d="M100 70C120 70 130 80 130 100C130 120 120 130 100 130C80 130 70 120 70 100C70 80 80 70 100 70Z" fill="%23764ba2"/>
-                        <text x="100" y="180" text-anchor="middle" fill="%2394a3b8" font-family="Arial" font-size="24">MS</text>
-                      </svg>
-                    `)}`;
+                    borderRadius: '100%'
                   }}
                 />
               </div>
