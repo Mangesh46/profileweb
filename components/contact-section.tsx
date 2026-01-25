@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button"
 import { Github, Linkedin, Mail, MapPin, FileText, ExternalLink } from "lucide-react"
 
 export function ContactSection() {
-  const email = "sardemangesh6@gmail.com"
+  const email = "mangeshsarde6@gmail.com"
   const linkedIn = "https://linkedin.com/in/mangesh-sarde"
   const github = "https://github.com/Mangesh46"
 
