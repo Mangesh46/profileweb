@@ -1,13 +1,15 @@
 "use client"
 
-import { useState, memo } from "react"
+import { useState, memo, useEffect, useCallback } from "react"
 import { Badge } from "./ui/badge"
 import { AirShoesArchitecture } from "./airshoes-architecture"
 import { CSISenseArchitecture } from "./csisense-architecture"
 import { DHIMSArchitecture } from "./dhims-architecture"
 import { GitHubReadmeProject } from "./github-readme-project"
-import { Award, ChevronRight, LayoutGrid, Box } from "lucide-react"
+import { MermaidDiagram } from "./mermaid-diagram"
+import { Award, ChevronRight, LayoutGrid, Box, GitBranch } from "lucide-react"
 import { cn } from "../lib/utils"
+import type { ProjectMeta } from "../app/api/readme/[repo]/route"
 
 const projects = [
   {
@@ -26,7 +28,8 @@ const projects = [
     ],
     tech: ["ESP32", "Python Flask", "React", "MongoDB", "TensorFlow", "5G Concepts"],
     accentColor: "#3b82f6",
-    component: AirShoesArchitecture,
+    // Hardcoded fallback components — used only if README has no mermaid diagram
+    FallbackDiagram: AirShoesArchitecture,
   },
   {
     id: "csisense",
@@ -44,7 +47,7 @@ const projects = [
     ],
     tech: ["Python", "ESP32", "Signal Processing", "Machine Learning", "React Native"],
     accentColor: "#10b981",
-    component: CSISenseArchitecture,
+    FallbackDiagram: CSISenseArchitecture,
   },
   {
     id: "dhims",
@@ -62,11 +65,27 @@ const projects = [
     ],
     tech: ["MongoDB", "Express.js", "React", "Node.js", "JWT", "REST API"],
     accentColor: "#f59e0b",
-    component: DHIMSArchitecture,
+    FallbackDiagram: DHIMSArchitecture,
   },
 ]
 
 type RightTab = "architecture" | "readme"
+
+// Fetches mermaid diagram from README for a given repo
+function useMermaidDiagram(repo: string) {
+  const [diagram, setDiagram] = useState<string | null | undefined>(undefined) // undefined = loading
+
+  useEffect(() => {
+    fetch(`/api/readme/${repo}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((data: ProjectMeta | null) => {
+        setDiagram(data?.mermaidDiagram ?? null) // null = no diagram found
+      })
+      .catch(() => setDiagram(null))
+  }, [repo])
+
+  return diagram
+}
 
 const ProjectCard = memo(function ProjectCard({
   project,
@@ -113,6 +132,62 @@ const ProjectCard = memo(function ProjectCard({
   )
 })
 
+// Architecture panel: uses mermaid from README if available, otherwise falls back to hardcoded
+function ArchitecturePanel({ project }: { project: (typeof projects)[0] }) {
+  const mermaidDiagram = useMermaidDiagram(project.repo)
+  const { FallbackDiagram } = project
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
+          System Architecture
+        </p>
+        {/* Show source badge */}
+        {mermaidDiagram === undefined && (
+          <span className="text-[10px] text-muted-foreground font-mono animate-pulse">
+            fetching from GitHub...
+          </span>
+        )}
+        {mermaidDiagram && (
+          <span className="flex items-center gap-1 text-[10px] text-emerald-500 font-mono">
+            <GitBranch className="w-3 h-3" />
+            live from README
+          </span>
+        )}
+        {mermaidDiagram === null && (
+          <span className="text-[10px] text-muted-foreground font-mono">
+            static diagram
+          </span>
+        )}
+      </div>
+
+      <div className="aspect-[16/10] bg-background rounded-lg border border-border overflow-hidden">
+        {/* Loading: show fallback while fetching */}
+        {mermaidDiagram === undefined && <FallbackDiagram />}
+
+        {/* README mermaid diagram found — render it */}
+        {mermaidDiagram && (
+          <MermaidDiagram chart={mermaidDiagram} className="w-full h-full p-3" />
+        )}
+
+        {/* No mermaid in README — use hardcoded fallback */}
+        {mermaidDiagram === null && <FallbackDiagram />}
+      </div>
+
+      {mermaidDiagram === null && (
+        <p className="mt-2 text-[10px] text-muted-foreground font-mono text-center">
+          Add a{" "}
+          <code className="bg-secondary px-1 rounded">```mermaid</code>
+          {" "}block under{" "}
+          <code className="bg-secondary px-1 rounded">## Architecture</code>
+          {" "}in your README to replace this
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function ProjectsSection() {
   const [activeId, setActiveId] = useState(projects[0].id)
   const [rightTab, setRightTab] = useState<RightTab>("architecture")
@@ -134,8 +209,8 @@ export function ProjectsSection() {
             System Architecture Projects
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl">
-            Research-oriented embedded systems and IoT projects. Select a project to explore its
-            architecture, motivation, and live status — synced directly from GitHub.
+            Research-oriented embedded systems and IoT projects. Architecture diagrams and status
+            sync live from each project&apos;s GitHub README.
           </p>
         </div>
 
@@ -233,17 +308,12 @@ export function ProjectsSection() {
               </button>
             </div>
 
+            {/* Architecture panel — live mermaid or fallback */}
             {rightTab === "architecture" && (
-              <div className="p-6">
-                <div className="aspect-[16/10] bg-background rounded-lg border border-border overflow-hidden">
-                  <current.component />
-                </div>
-                <p className="mt-3 text-[10px] text-muted-foreground font-mono text-center">
-                  Interactive system architecture diagram
-                </p>
-              </div>
+              <ArchitecturePanel project={current} />
             )}
 
+            {/* README story/progress/video panel */}
             {rightTab === "readme" && (
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-4">

@@ -9,6 +9,7 @@ export interface ProjectMeta {
   youtubeId?: string
   story?: string
   currentProgress?: string
+  mermaidDiagram?: string   // extracted from ```mermaid blocks under ## Architecture
   rawReadme?: string
 }
 
@@ -66,6 +67,27 @@ function parseReadme(content: string): ProjectMeta {
   )
   if (progressMatch) {
     meta.currentProgress = progressMatch[1].trim()
+  }
+
+  // Extract mermaid diagram — looks for ```mermaid blocks anywhere in README
+  // Priority: first looks inside ## Architecture / ## System Architecture section,
+  // then falls back to the first ```mermaid block found anywhere
+  const archSectionMatch = content.match(
+    /##\s*(?:🏗️\s*)?(?:System\s*)?(?:Architecture|Diagram|System Design)[^\n]*\n([\s\S]*?)(?=\n##\s|\z)/i
+  )
+
+  const extractMermaid = (text: string): string | undefined => {
+    const m = text.match(/```mermaid\s*\n([\s\S]*?)```/)
+    return m ? m[1].trim() : undefined
+  }
+
+  if (archSectionMatch) {
+    meta.mermaidDiagram = extractMermaid(archSectionMatch[1])
+  }
+
+  // Fallback: first mermaid block anywhere in the README
+  if (!meta.mermaidDiagram) {
+    meta.mermaidDiagram = extractMermaid(content)
   }
 
   meta.rawReadme = content
