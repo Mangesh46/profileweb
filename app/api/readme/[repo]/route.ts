@@ -7,9 +7,10 @@ export interface ProjectMeta {
   stageColor: string
   updated: string
   youtubeId?: string
+  youtubeUnlisted?: boolean  // true = unlisted (embeddable), false/omit = private (link only)
   story?: string
   currentProgress?: string
-  mermaidDiagram?: string   // extracted from ```mermaid blocks under ## Architecture
+  mermaidDiagram?: string
   rawReadme?: string
 }
 
@@ -27,6 +28,7 @@ const STAGE_COLORS: Record<string, string> = {
  * stage: In Progress
  * updated: 2025-03-14
  * youtube_id: dQw4w9WgXcQ
+ * youtube_unlisted: true
  * -->
  */
 function parseReadme(content: string): ProjectMeta {
@@ -40,38 +42,34 @@ function parseReadme(content: string): ProjectMeta {
   const metaMatch = content.match(/<!--\s*PROFILE_CARD([\s\S]*?)-->/)
   if (metaMatch) {
     const metaBlock = metaMatch[1]
-    const stageMatch = metaBlock.match(/stage:\s*(.+)/)
-    const updatedMatch = metaBlock.match(/updated:\s*(.+)/)
-    const ytMatch = metaBlock.match(/youtube_id:\s*(.+)/)
+    const stageMatch      = metaBlock.match(/stage:\s*(.+)/)
+    const updatedMatch    = metaBlock.match(/updated:\s*(.+)/)
+    const ytMatch         = metaBlock.match(/youtube_id:\s*(.+)/)
+    const ytUnlistedMatch = metaBlock.match(/youtube_unlisted:\s*(.+)/)
 
     if (stageMatch) {
       const stage = stageMatch[1].trim() as ProjectMeta["stage"]
       meta.stage = stage
       meta.stageColor = STAGE_COLORS[stage] || "#64748b"
     }
-    if (updatedMatch) meta.updated = updatedMatch[1].trim()
-    if (ytMatch) meta.youtubeId = ytMatch[1].trim()
+    if (updatedMatch)    meta.updated          = updatedMatch[1].trim()
+    if (ytMatch)         meta.youtubeId        = ytMatch[1].trim()
+    if (ytUnlistedMatch) meta.youtubeUnlisted  = ytUnlistedMatch[1].trim() === "true"
   }
 
   // Extract ## 🎯 Story & Motivation section
   const storyMatch = content.match(
     /##\s*(?:🎯\s*)?(?:Story\s*(?:&|and)\s*Motivation|Motivation|Story)[^\n]*\n([\s\S]*?)(?=\n##|\n<!--|\z)/i
   )
-  if (storyMatch) {
-    meta.story = storyMatch[1].trim()
-  }
+  if (storyMatch) meta.story = storyMatch[1].trim()
 
   // Extract ## 📊 Current Progress / Stage section
   const progressMatch = content.match(
     /##\s*(?:📊\s*)?(?:Current\s*(?:Progress|Stage)|Progress|Stage\s*Details)[^\n]*\n([\s\S]*?)(?=\n##|\n<!--|\z)/i
   )
-  if (progressMatch) {
-    meta.currentProgress = progressMatch[1].trim()
-  }
+  if (progressMatch) meta.currentProgress = progressMatch[1].trim()
 
-  // Extract mermaid diagram — looks for ```mermaid blocks anywhere in README
-  // Priority: first looks inside ## Architecture / ## System Architecture section,
-  // then falls back to the first ```mermaid block found anywhere
+  // Extract mermaid diagram — prefers ## Architecture section, falls back to first block
   const archSectionMatch = content.match(
     /##\s*(?:🏗️\s*)?(?:System\s*)?(?:Architecture|Diagram|System Design)[^\n]*\n([\s\S]*?)(?=\n##\s|\z)/i
   )
@@ -81,14 +79,8 @@ function parseReadme(content: string): ProjectMeta {
     return m ? m[1].trim() : undefined
   }
 
-  if (archSectionMatch) {
-    meta.mermaidDiagram = extractMermaid(archSectionMatch[1])
-  }
-
-  // Fallback: first mermaid block anywhere in the README
-  if (!meta.mermaidDiagram) {
-    meta.mermaidDiagram = extractMermaid(content)
-  }
+  if (archSectionMatch) meta.mermaidDiagram = extractMermaid(archSectionMatch[1])
+  if (!meta.mermaidDiagram) meta.mermaidDiagram = extractMermaid(content)
 
   meta.rawReadme = content
   return meta
@@ -103,7 +95,7 @@ export async function GET(
   try {
     const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${repo}/main/README.md`
     const res = await fetch(url, {
-      next: { revalidate: 3600 }, // cache for 1 hour, auto re-fetch on redeploy
+      next: { revalidate: 3600 },
       headers: {
         Accept: "text/plain",
         ...(process.env.GITHUB_TOKEN
@@ -113,7 +105,6 @@ export async function GET(
     })
 
     if (!res.ok) {
-      // Try master branch fallback
       const fallbackUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${repo}/master/README.md`
       const fallbackRes = await fetch(fallbackUrl, { next: { revalidate: 3600 } })
       if (!fallbackRes.ok) {

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { Badge } from "./ui/badge"
 import { RefreshCw, Clock, GitBranch, Youtube, BookOpen, AlertCircle, ExternalLink } from "lucide-react"
 import { cn } from "../lib/utils"
 import type { ProjectMeta } from "../app/api/readme/[repo]/route"
@@ -12,21 +11,19 @@ interface GitHubReadmeProjectProps {
 }
 
 const STAGE_STYLES: Record<string, { bg: string; border: string; dot: string }> = {
-  Ideation:    { bg: "bg-amber-500/10",   border: "border-amber-500/30",  dot: "bg-amber-400" },
-  "In Progress": { bg: "bg-blue-500/10",  border: "border-blue-500/30",   dot: "bg-blue-400" },
-  Completed:   { bg: "bg-emerald-500/10", border: "border-emerald-500/30", dot: "bg-emerald-400" },
-  Archived:    { bg: "bg-slate-500/10",   border: "border-slate-500/30",  dot: "bg-slate-400" },
+  Ideation:      { bg: "bg-amber-500/10",   border: "border-amber-500/30",  dot: "bg-amber-400" },
+  "In Progress": { bg: "bg-blue-500/10",    border: "border-blue-500/30",   dot: "bg-blue-400" },
+  Completed:     { bg: "bg-emerald-500/10", border: "border-emerald-500/30", dot: "bg-emerald-400" },
+  Archived:      { bg: "bg-slate-500/10",   border: "border-slate-500/30",  dot: "bg-slate-400" },
 }
 
 function MarkdownText({ text }: { text: string }) {
-  // Very lightweight markdown: bold, italic, inline code, line breaks, bullet lists
   const lines = text.split("\n")
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => {
         if (!line.trim()) return <div key={i} className="h-1" />
 
-        // Checkbox list
         if (/^- \[x\]/i.test(line)) {
           return (
             <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -47,7 +44,6 @@ function MarkdownText({ text }: { text: string }) {
             </div>
           )
         }
-        // Bullet list
         if (/^[-*]\s/.test(line)) {
           return (
             <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -56,7 +52,6 @@ function MarkdownText({ text }: { text: string }) {
             </div>
           )
         }
-        // Normal paragraph
         return (
           <p key={i} className="text-sm text-muted-foreground leading-relaxed">
             {line}
@@ -67,11 +62,21 @@ function MarkdownText({ text }: { text: string }) {
   )
 }
 
-function YouTubeEmbed({ videoId, isUnlisted = false }: { videoId: string; isUnlisted?: boolean }) {
+/**
+ * YouTubeEmbed
+ *
+ * isUnlisted = true  → video is unlisted, can be embedded directly (thumbnail + iframe on click)
+ * isUnlisted = false → video is private, cannot be embedded; shows a styled link-out button instead
+ *
+ * Set in README PROFILE_CARD:
+ *   youtube_id: YOUR_VIDEO_ID
+ *   youtube_unlisted: true      ← omit or set false for private videos
+ */
+function YouTubeEmbed({ videoId, isUnlisted }: { videoId: string; isUnlisted: boolean }) {
   const [showEmbed, setShowEmbed] = useState(false)
 
+  // Private video — YouTube will reject embeds, show a link-out card instead
   if (!isUnlisted) {
-    // Private video: show a styled link button only
     return (
       <a
         href={`https://youtu.be/${videoId}`}
@@ -84,13 +89,16 @@ function YouTubeEmbed({ videoId, isUnlisted = false }: { videoId: string; isUnli
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground">Project Demo Video</p>
-          <p className="text-xs text-muted-foreground">Private — click to watch on YouTube</p>
+          <p className="text-xs text-muted-foreground">
+            Private video — opens on YouTube
+          </p>
         </div>
-        <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-red-500 transition-colors" />
+        <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-red-500 transition-colors flex-shrink-0" />
       </a>
     )
   }
 
+  // Unlisted video — can be embedded
   if (!showEmbed) {
     return (
       <button
@@ -112,7 +120,7 @@ function YouTubeEmbed({ videoId, isUnlisted = false }: { videoId: string; isUnli
         </div>
         <div className="absolute bottom-3 left-3">
           <span className="px-2 py-1 bg-black/60 rounded text-[10px] text-white font-mono">
-            Project Demo
+            Project Demo · Unlisted
           </span>
         </div>
       </button>
@@ -164,9 +172,9 @@ export function GitHubReadmeProject({ repo, className }: GitHubReadmeProjectProp
   const stageStyle = meta ? (STAGE_STYLES[meta.stage] || STAGE_STYLES["Completed"]) : null
 
   const tabs = [
-    { id: "story" as const,    label: "Story",    icon: BookOpen,  show: !!meta?.story },
+    { id: "story"    as const, label: "Story",    icon: BookOpen,  show: !!meta?.story },
     { id: "progress" as const, label: "Progress", icon: GitBranch, show: !!meta?.currentProgress },
-    { id: "video" as const,    label: "Video",    icon: Youtube,   show: !!meta?.youtubeId },
+    { id: "video"    as const, label: "Video",    icon: Youtube,   show: !!meta?.youtubeId },
   ].filter(t => t.show)
 
   if (loading) {
@@ -190,7 +198,10 @@ export function GitHubReadmeProject({ repo, className }: GitHubReadmeProjectProp
       <div className={cn("p-5 rounded-xl bg-card border border-border/50 opacity-60", className)}>
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <AlertCircle className="w-4 h-4" />
-          <span>README not found — add one to <code className="text-xs bg-secondary px-1 rounded">{repo}</code></span>
+          <span>
+            README not found — add one to{" "}
+            <code className="text-xs bg-secondary px-1 rounded">{repo}</code>
+          </span>
         </div>
       </div>
     )
@@ -201,24 +212,24 @@ export function GitHubReadmeProject({ repo, className }: GitHubReadmeProjectProp
       {/* Header bar */}
       <div className="px-5 py-3 border-b border-border flex items-center justify-between bg-secondary/20">
         <div className="flex items-center gap-3">
-          {/* Stage badge */}
           {stageStyle && (
-            <span className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
-              stageStyle.bg, stageStyle.border
-            )} style={{ color: meta.stageColor }}>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
+                stageStyle.bg, stageStyle.border
+              )}
+              style={{ color: meta.stageColor }}
+            >
               <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse", stageStyle.dot)} />
               {meta.stage}
             </span>
           )}
-          {/* Last updated */}
           <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono">
             <Clock className="w-3 h-3" />
             Updated {meta.updated}
           </span>
         </div>
 
-        {/* Refresh button */}
         <button
           onClick={handleRefresh}
           disabled={refreshing}
@@ -245,6 +256,10 @@ export function GitHubReadmeProject({ repo, className }: GitHubReadmeProjectProp
             >
               <tab.icon className="w-3.5 h-3.5" />
               {tab.label}
+              {/* Show lock icon on Video tab if private */}
+              {tab.id === "video" && !meta.youtubeUnlisted && (
+                <span className="text-[9px] font-mono text-muted-foreground/60 ml-0.5">🔒</span>
+              )}
             </button>
           ))}
         </div>
@@ -261,18 +276,24 @@ export function GitHubReadmeProject({ repo, className }: GitHubReadmeProjectProp
         )}
 
         {activeTab === "video" && meta.youtubeId && (
-          <YouTubeEmbed videoId={meta.youtubeId} isUnlisted={true} />
+          <YouTubeEmbed
+            videoId={meta.youtubeId}
+            isUnlisted={meta.youtubeUnlisted ?? false}
+          />
         )}
 
-        {/* Fallback if no content for tab */}
         {((activeTab === "story" && !meta.story) ||
           (activeTab === "progress" && !meta.currentProgress) ||
           (activeTab === "video" && !meta.youtubeId)) && (
           <p className="text-sm text-muted-foreground italic">
-            Add a <code className="bg-secondary px-1 rounded text-xs">## {
-              activeTab === "story" ? "🎯 Story & Motivation" :
-              activeTab === "progress" ? "📊 Current Progress" : "Video"
-            }</code> section to your README.
+            Add a{" "}
+            <code className="bg-secondary px-1 rounded text-xs">
+              ## {
+                activeTab === "story" ? "🎯 Story & Motivation" :
+                activeTab === "progress" ? "📊 Current Progress" : "Video"
+              }
+            </code>{" "}
+            section to your README.
           </p>
         )}
       </div>
