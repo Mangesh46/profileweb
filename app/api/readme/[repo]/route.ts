@@ -71,7 +71,7 @@ function parseReadme(content: string): ProjectMeta {
 
   // Extract mermaid diagram — prefers ## Architecture section, falls back to first block
   const archSectionMatch = content.match(
-    /##\s*(?:🏗️\s*)?(?:System\s*)?(?:Architecture|Diagram|System Design)[^\n]*\n([\s\S]*?)(?=\n##\s|\z)/i
+    /##\s*(?:\d+\.\s*)?(?:🏗️\s*)?(?:System\s*)?(?:Architecture|Diagram|System Design)[^\n]*\n([\s\S]*?)(?=\n##\s|\z)/i
   )
 
   const extractMermaid = (text: string): string | undefined => {
