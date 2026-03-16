@@ -67,6 +67,24 @@ const projects = [
     accentColor: "#f59e0b",
     FallbackDiagram: DHIMSArchitecture,
   },
+  {
+    id: "mlcompress",
+    repo: "mlcompress",              // ← must match your GitHub repo name exactly
+    title: "MLCompress",
+    subtitle: "Neural Image Compression Codec in Rust",
+    achievement: "Research Project",
+    description:
+      "High-performance neural image compression codec combining ONNX-based deep learning with Zstd entropy coding. Achieves ~7.8x compression ratio. Written in Rust for low-latency inference.",
+    highlights: [
+      "Neural encoder/decoder via ONNX Runtime",
+      "Hybrid: learned latents + Zstd entropy coding",
+      "Custom MLC file format with metadata header",
+      "7.8x compression ratio on real images",
+    ],
+    tech: ["Rust", "ONNX Runtime", "Python", "Zstd", "Neural Networks", "Signal Processing"],
+    accentColor: "#a855f7",           // purple — distinct from your other projects
+    FallbackDiagram: null,  // reuse any fallback; mermaid in README will override
+  },
 ]
 
 type RightTab = "architecture" | "readme"
