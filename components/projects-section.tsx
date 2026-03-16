@@ -28,7 +28,6 @@ const projects = [
     ],
     tech: ["ESP32", "Python Flask", "React", "MongoDB", "TensorFlow", "5G Concepts"],
     accentColor: "#3b82f6",
-    // Hardcoded fallback components — used only if README has no mermaid diagram
     FallbackDiagram: AirShoesArchitecture,
   },
   {
@@ -50,6 +49,60 @@ const projects = [
     FallbackDiagram: CSISenseArchitecture,
   },
   {
+    id: "mlcompress",
+    repo: "mlcompress",
+    title: "MLCompress",
+    subtitle: "Neural Image Compression Codec in Rust",
+    achievement: "Research Project",
+    description:
+      "High-performance neural image compression codec combining ONNX-based deep learning with Zstd entropy coding. Achieves ~7.8x compression ratio on real images. Written in Rust for low-latency inference.",
+    highlights: [
+      "Neural encoder/decoder via ONNX Runtime",
+      "Hybrid: learned latents + Zstd entropy coding",
+      "Custom MLC file format with metadata header",
+      "~7.8x compression ratio on real images",
+    ],
+    tech: ["Rust", "ONNX Runtime", "Python", "Zstd", "Neural Networks", "Signal Processing"],
+    accentColor: "#a855f7",
+    FallbackDiagram: AirShoesArchitecture,
+  },
+  {
+    id: "crackathon",
+    repo: "crackathon",
+    title: "Crackathon",
+    subtitle: "Road Damage Detection — IIT Bombay",
+    achievement: "IIT Bombay Crackathon — Team sardemv",
+    description:
+      "YOLOv8s-based road damage detection system trained at 1024px resolution on Tesla P100. Detects 5 damage types: longitudinal/transverse/alligator cracks, potholes, and other corruption.",
+    highlights: [
+      "YOLOv8s at 1024×1024 — fine crack detection",
+      "5 damage classes: cracks, potholes, corruption",
+      "Trained on Kaggle Tesla P100",
+      "YOLO TXT prediction format with confidence scores",
+    ],
+    tech: ["YOLOv8", "Python", "PyTorch", "Kaggle", "Computer Vision", "Object Detection"],
+    accentColor: "#f97316",
+    FallbackDiagram: AirShoesArchitecture,
+  },
+  {
+    id: "crophealth",
+    repo: "crop-health-dashboard",
+    title: "Crop Health Dashboard",
+    subtitle: "AI-Powered Agricultural Monitoring System",
+    achievement: "3rd Rank — National Competition, YCCE Nagpur",
+    description:
+      "Real-time crop monitoring system using vegetation index analysis (NDVI, EVI, NDWI) from field images. Classifies health zones, assesses pest risk, and recommends smart irrigation.",
+    highlights: [
+      "NDVI / EVI / NDWI index calculation from images",
+      "92% accuracy in vegetation health classification",
+      "Real-time pest risk assessment",
+      "Smart irrigation scheduling recommendations",
+    ],
+    tech: ["React", "Python Flask", "NumPy", "PIL", "Recharts", "REST API"],
+    accentColor: "#22c55e",
+    FallbackDiagram: AirShoesArchitecture,
+  },
+  {
     id: "dhims",
     repo: "DHIMS",
     title: "DHIMS",
@@ -67,37 +120,18 @@ const projects = [
     accentColor: "#f59e0b",
     FallbackDiagram: DHIMSArchitecture,
   },
-  {
-    id: "mlcompress",
-    repo: "mlcompress",              // ← must match your GitHub repo name exactly
-    title: "MLCompress",
-    subtitle: "Neural Image Compression Codec in Rust",
-    achievement: "Research Project",
-    description:
-      "High-performance neural image compression codec combining ONNX-based deep learning with Zstd entropy coding. Achieves ~7.8x compression ratio. Written in Rust for low-latency inference.",
-    highlights: [
-      "Neural encoder/decoder via ONNX Runtime",
-      "Hybrid: learned latents + Zstd entropy coding",
-      "Custom MLC file format with metadata header",
-      "7.8x compression ratio on real images",
-    ],
-    tech: ["Rust", "ONNX Runtime", "Python", "Zstd", "Neural Networks", "Signal Processing"],
-    accentColor: "#a855f7",           // purple — distinct from your other projects
-    FallbackDiagram: AirShoesArchitecture,  // reuse any fallback; mermaid in README will override
-  },
 ]
 
 type RightTab = "architecture" | "readme"
 
-// Fetches mermaid diagram from README for a given repo
 function useMermaidDiagram(repo: string) {
-  const [diagram, setDiagram] = useState<string | null | undefined>(undefined) // undefined = loading
+  const [diagram, setDiagram] = useState<string | null | undefined>(undefined)
 
   useEffect(() => {
     fetch(`/api/readme/${repo}`)
       .then(r => r.ok ? r.json() : null)
       .then((data: ProjectMeta | null) => {
-        setDiagram(data?.mermaidDiagram ?? null) // null = no diagram found
+        setDiagram(data?.mermaidDiagram ?? null)
       })
       .catch(() => setDiagram(null))
   }, [repo])
@@ -150,7 +184,6 @@ const ProjectCard = memo(function ProjectCard({
   )
 })
 
-// Architecture panel: uses mermaid from README if available, otherwise falls back to hardcoded
 function ArchitecturePanel({ project }: { project: (typeof projects)[0] }) {
   const mermaidDiagram = useMermaidDiagram(project.repo)
   const { FallbackDiagram } = project
@@ -161,7 +194,6 @@ function ArchitecturePanel({ project }: { project: (typeof projects)[0] }) {
         <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
           System Architecture
         </p>
-        {/* Show source badge */}
         {mermaidDiagram === undefined && (
           <span className="text-[10px] text-muted-foreground font-mono animate-pulse">
             fetching from GitHub...
@@ -181,15 +213,10 @@ function ArchitecturePanel({ project }: { project: (typeof projects)[0] }) {
       </div>
 
       <div className="aspect-[16/10] bg-background rounded-lg border border-border overflow-hidden">
-        {/* Loading: show fallback while fetching */}
         {mermaidDiagram === undefined && <FallbackDiagram />}
-
-        {/* README mermaid diagram found — render it */}
         {mermaidDiagram && (
           <MermaidDiagram chart={mermaidDiagram} className="w-full h-full p-3" />
         )}
-
-        {/* No mermaid in README — use hardcoded fallback */}
         {mermaidDiagram === null && <FallbackDiagram />}
       </div>
 
@@ -295,7 +322,6 @@ export function ProjectsSection() {
 
           {/* Right panel */}
           <div className="rounded-xl bg-card border border-border overflow-hidden">
-            {/* Tab bar */}
             <div className="flex border-b border-border bg-secondary/20">
               <button
                 onClick={() => setRightTab("architecture")}
@@ -326,12 +352,10 @@ export function ProjectsSection() {
               </button>
             </div>
 
-            {/* Architecture panel — live mermaid or fallback */}
             {rightTab === "architecture" && (
               <ArchitecturePanel project={current} />
             )}
 
-            {/* README story/progress/video panel */}
             {rightTab === "readme" && (
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-4">
