@@ -1,13 +1,10 @@
 "use client"
 
-import { useState, memo, useEffect, useCallback } from "react"
+import { useState, memo, useEffect } from "react"
 import { Badge } from "./ui/badge"
-import { AirShoesArchitecture } from "./airshoes-architecture"
-import { CSISenseArchitecture } from "./csisense-architecture"
-import { DHIMSArchitecture } from "./dhims-architecture"
 import { GitHubReadmeProject } from "./github-readme-project"
 import { MermaidDiagram } from "./mermaid-diagram"
-import { Award, ChevronRight, LayoutGrid, Box, GitBranch } from "lucide-react"
+import { Award, ChevronRight, LayoutGrid, Box, GitBranch, GitCommit } from "lucide-react"
 import { cn } from "../lib/utils"
 import type { ProjectMeta } from "../app/api/readme/[repo]/route"
 
@@ -28,7 +25,6 @@ const projects = [
     ],
     tech: ["ESP32", "Python Flask", "React", "MongoDB", "TensorFlow", "5G Concepts"],
     accentColor: "#3b82f6",
-    FallbackDiagram: AirShoesArchitecture,
   },
   {
     id: "csisense",
@@ -46,7 +42,6 @@ const projects = [
     ],
     tech: ["Python", "ESP32", "Signal Processing", "Machine Learning", "React Native"],
     accentColor: "#10b981",
-    FallbackDiagram: CSISenseArchitecture,
   },
   {
     id: "mlcompress",
@@ -64,7 +59,6 @@ const projects = [
     ],
     tech: ["Rust", "ONNX Runtime", "Python", "Zstd", "Neural Networks", "Signal Processing"],
     accentColor: "#a855f7",
-    FallbackDiagram: AirShoesArchitecture,
   },
   {
     id: "crackathon",
@@ -82,7 +76,6 @@ const projects = [
     ],
     tech: ["YOLOv8", "Python", "PyTorch", "Kaggle", "Computer Vision", "Object Detection"],
     accentColor: "#f97316",
-    FallbackDiagram: AirShoesArchitecture,
   },
   {
     id: "crophealth",
@@ -100,7 +93,6 @@ const projects = [
     ],
     tech: ["React", "Python Flask", "NumPy", "PIL", "Recharts", "REST API"],
     accentColor: "#22c55e",
-    FallbackDiagram: AirShoesArchitecture,
   },
   {
     id: "dhims",
@@ -118,7 +110,6 @@ const projects = [
     ],
     tech: ["MongoDB", "Express.js", "React", "Node.js", "JWT", "REST API"],
     accentColor: "#f59e0b",
-    FallbackDiagram: DHIMSArchitecture,
   },
 ]
 
@@ -126,7 +117,6 @@ type RightTab = "architecture" | "readme"
 
 function useMermaidDiagram(repo: string) {
   const [diagram, setDiagram] = useState<string | null | undefined>(undefined)
-
   useEffect(() => {
     fetch(`/api/readme/${repo}`)
       .then(r => r.ok ? r.json() : null)
@@ -135,8 +125,96 @@ function useMermaidDiagram(repo: string) {
       })
       .catch(() => setDiagram(null))
   }, [repo])
-
   return diagram
+}
+
+function NoDiagramState({ accentColor, repo }: { accentColor: string; repo: string }) {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center gap-5 p-8 select-none">
+      {/* Animated node graph */}
+      <div className="relative w-52 h-32 opacity-50">
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-11 h-11 rounded-xl border-2 flex items-center justify-center animate-pulse"
+          style={{ borderColor: accentColor, backgroundColor: `${accentColor}18` }}
+        >
+          <GitCommit className="w-4 h-4" style={{ color: accentColor }} />
+        </div>
+        <div
+          className="absolute bottom-0 left-6 w-10 h-10 rounded-xl border-2 flex items-center justify-center"
+          style={{ borderColor: accentColor, backgroundColor: `${accentColor}10` }}
+        >
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: accentColor }} />
+        </div>
+        <div
+          className="absolute bottom-0 right-6 w-10 h-10 rounded-xl border-2 flex items-center justify-center"
+          style={{ borderColor: accentColor, backgroundColor: `${accentColor}10` }}
+        >
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: accentColor }} />
+        </div>
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-lg border flex items-center justify-center opacity-40"
+          style={{ borderColor: accentColor }}
+        >
+          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
+        </div>
+        <svg className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
+          <line x1="104" y1="44" x2="42" y2="88" stroke={accentColor} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4" />
+          <line x1="104" y1="44" x2="166" y2="88" stroke={accentColor} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4" />
+          <line x1="104" y1="44" x2="104" y2="76" stroke={accentColor} strokeWidth="1" strokeDasharray="3 3" opacity="0.25" />
+        </svg>
+      </div>
+
+      <div className="text-center space-y-2">
+        <p className="text-sm font-semibold text-foreground/50 tracking-wide">
+          Diagram coming soon
+        </p>
+        <p className="text-[11px] text-muted-foreground/60 font-mono leading-relaxed">
+          Add a{" "}
+          <code className="px-1.5 py-0.5 rounded bg-secondary text-[10px]">
+            ```mermaid
+          </code>
+          {" "}block under{" "}
+          <code className="px-1.5 py-0.5 rounded bg-secondary text-[10px]">
+            ## Architecture
+          </code>
+          {" "}in{" "}
+          <a
+            href={`https://github.com/Mangesh46/${repo}#readme`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 transition-opacity hover:opacity-80"
+            style={{ color: accentColor }}
+          >
+            README
+          </a>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="w-full space-y-4 animate-pulse opacity-20">
+        <div className="flex justify-center">
+          <div className="h-9 w-32 bg-muted rounded-xl" />
+        </div>
+        <div className="flex justify-between px-6">
+          <div className="h-8 w-20 bg-muted rounded-lg" />
+          <div className="h-8 w-20 bg-muted rounded-lg" />
+          <div className="h-8 w-20 bg-muted rounded-lg" />
+        </div>
+        <div className="flex justify-center gap-4">
+          <div className="h-6 w-24 bg-muted rounded" />
+          <div className="h-6 w-16 bg-muted rounded" />
+        </div>
+        <div className="flex justify-center">
+          <div className="h-7 w-28 bg-muted rounded-lg" />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 const ProjectCard = memo(function ProjectCard({
@@ -186,7 +264,6 @@ const ProjectCard = memo(function ProjectCard({
 
 function ArchitecturePanel({ project }: { project: (typeof projects)[0] }) {
   const mermaidDiagram = useMermaidDiagram(project.repo)
-  const { FallbackDiagram } = project
 
   return (
     <div className="p-6">
@@ -206,29 +283,21 @@ function ArchitecturePanel({ project }: { project: (typeof projects)[0] }) {
           </span>
         )}
         {mermaidDiagram === null && (
-          <span className="text-[10px] text-muted-foreground font-mono">
-            static diagram
+          <span className="text-[10px] text-muted-foreground/50 font-mono">
+            diagram pending
           </span>
         )}
       </div>
 
       <div className="aspect-[16/10] bg-background rounded-lg border border-border overflow-hidden">
-        {mermaidDiagram === undefined && <FallbackDiagram />}
+        {mermaidDiagram === undefined && <LoadingSkeleton />}
         {mermaidDiagram && (
           <MermaidDiagram chart={mermaidDiagram} className="w-full h-full p-3" />
         )}
-        {mermaidDiagram === null && <FallbackDiagram />}
+        {mermaidDiagram === null && (
+          <NoDiagramState accentColor={project.accentColor} repo={project.repo} />
+        )}
       </div>
-
-      {mermaidDiagram === null && (
-        <p className="mt-2 text-[10px] text-muted-foreground font-mono text-center">
-          Add a{" "}
-          <code className="bg-secondary px-1 rounded">```mermaid</code>
-          {" "}block under{" "}
-          <code className="bg-secondary px-1 rounded">## Architecture</code>
-          {" "}in your README to replace this
-        </p>
-      )}
     </div>
   )
 }
