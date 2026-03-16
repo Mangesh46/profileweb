@@ -83,7 +83,7 @@ const projects = [
     ],
     tech: ["Rust", "ONNX Runtime", "Python", "Zstd", "Neural Networks", "Signal Processing"],
     accentColor: "#a855f7",           // purple — distinct from your other projects
-    FallbackDiagram: null,  // reuse any fallback; mermaid in README will override
+    FallbackDiagram: AirShoesArchitecture,  // reuse any fallback; mermaid in README will override
   },
 ]
 
