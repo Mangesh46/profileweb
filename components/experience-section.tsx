@@ -2,18 +2,20 @@
 
 import { useState } from "react"
 import { Badge } from "../components/ui/badge"
-import { Briefcase, Calendar, MapPin, CheckCircle2, Loader2 } from "lucide-react"
-import { useDriveProofs, type DriveFile } from "../lib/useDriveProofs"
+import { Briefcase, Calendar, MapPin, CheckCircle2 } from "lucide-react"
+import { useDriveProofs, type InternshipCard } from "../lib/useDriveProofs"
 import { ProofModal } from "../components/proof-modal"
 
 // ─────────────────────────────────────────────────────────────────
 //  PROOF FILE NAMING:
-//    internship_sarvaksh.pdf   → shows "View Internship Letter" button
+//    internship_Sarvaksh-Communications_Aug-2025-to-Jan-2026.pdf
 //
-//  Upload to your Drive folder → button appears automatically.
-//  Delete from Drive → button disappears automatically.
+//  Upload to Drive → "View Internship Letter" button appears.
+//  Delete from Drive → button disappears.
 // ─────────────────────────────────────────────────────────────────
 
+// Static experience data (role, highlights, tags stay in code)
+// Only the proof document is fetched from Drive
 const experiences = [
   {
     role: "Part-Time Intern",
@@ -22,8 +24,8 @@ const experiences = [
     duration: "Aug 2025 – Jan 2026",
     type: "Part-Time Internship",
     color: "#10b981",
-    // matches any internship_ file containing "sarvaksh"
-    keywords: ["sarvaksh"],
+    // matches internship_ file that contains "sarvaksh"
+    companyKeyword: "sarvaksh",
     highlights: [
       "Developed GlucoVision v3.1, an ESP32 ESP-NOW mesh and Raspberry Pi gateway system for real-time biosensor data acquisition.",
       "Resolved firmware issues and achieved less than 5% packet loss under high-concurrency BLE traffic.",
@@ -34,9 +36,11 @@ const experiences = [
   },
 ]
 
+type ActiveProof = { title: string; previewUrl: string; viewUrl: string }
+
 export function ExperienceSection() {
-  const { internships, loading, error } = useDriveProofs()
-  const [activeProof, setActiveProof] = useState<DriveFile & { label: string } | null>(null)
+  const { internships, loading } = useDriveProofs()
+  const [activeProof, setActiveProof] = useState<ActiveProof | null>(null)
 
   return (
     <section id="experience" className="relative py-24 bg-secondary/20">
@@ -48,27 +52,19 @@ export function ExperienceSection() {
           >
             Work Experience
           </Badge>
-          <div className="flex items-center gap-3">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Professional Experience</h2>
-            {loading && <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />}
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Professional Experience</h2>
           <p className="mt-4 text-muted-foreground max-w-2xl">
             Hands-on industry experience building real-world embedded systems and IoT solutions.
           </p>
-          {error && (
-            <p className="mt-2 text-xs text-amber-500 font-mono">
-              ⚠ Drive API: {error}
-            </p>
-          )}
         </div>
 
         <div className="relative">
           <div className="absolute left-6 top-0 bottom-0 w-px bg-border hidden sm:block" />
           <div className="space-y-8">
             {experiences.map((exp, idx) => {
-              const file = !loading
+              const proof: InternshipCard | undefined = !loading
                 ? internships.find((f) =>
-                    exp.keywords.some((kw) => f.name.toLowerCase().includes(kw.toLowerCase()))
+                    f.company.toLowerCase().includes(exp.companyKeyword)
                   )
                 : undefined
 
@@ -113,10 +109,14 @@ export function ExperienceSection() {
                         </div>
                       </div>
 
-                      {file && (
+                      {proof && (
                         <button
                           onClick={() =>
-                            setActiveProof({ ...file, label: `${exp.role} — ${exp.company}` })
+                            setActiveProof({
+                              title: `Internship Letter — ${exp.company}`,
+                              previewUrl: proof.file.previewUrl,
+                              viewUrl: proof.file.viewUrl,
+                            })
                           }
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border flex-shrink-0 transition-all
                             border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 hover:border-primary/50"
@@ -129,10 +129,7 @@ export function ExperienceSection() {
                     <ul className="space-y-2.5 mb-5">
                       {exp.highlights.map((item, i) => (
                         <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                          <CheckCircle2
-                            className="w-4 h-4 mt-0.5 flex-shrink-0"
-                            style={{ color: exp.color }}
-                          />
+                          <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: exp.color }} />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -158,7 +155,7 @@ export function ExperienceSection() {
 
       {activeProof && (
         <ProofModal
-          title={activeProof.label}
+          title={activeProof.title}
           previewUrl={activeProof.previewUrl}
           viewUrl={activeProof.viewUrl}
           onClose={() => setActiveProof(null)}
