@@ -5,6 +5,8 @@ import { cn } from "../lib/utils"
 import { Menu, X, Cpu } from "lucide-react"
 
 const navLinks = [
+  { href: "#experience", label: "Experience" },
+  { href: "#education", label: "Education" },
   { href: "#projects", label: "Projects" },
   { href: "#competitions", label: "Competitions" },
   { href: "#skills", label: "Skills" },

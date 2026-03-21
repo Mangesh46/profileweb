@@ -1,5 +1,6 @@
 import { HeroSection } from "../components/hero-section"
-
+import { ExperienceSection } from "../components/experience-section"
+import { EducationSection } from "../components/education-section"
 import { ProjectsSection } from "../components/projects-section"
 import { CompetitionsSection } from "../components/competitions-section"
 import { SkillsSection } from "../components/skills-section"
@@ -14,6 +15,8 @@ export default function Page() {
       <GridBackground />
       <Navigation />
       <HeroSection />
+      <ExperienceSection />
+      <EducationSection />
       <ProjectsSection />
       <CompetitionsSection />
       <SkillsSection />
