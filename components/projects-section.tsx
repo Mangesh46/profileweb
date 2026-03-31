@@ -642,7 +642,7 @@ export function ProjectsSection() {
             </div>
 
             {rightTab === "architecture" && <ArchitecturePanel project={current} meta={meta} />}
-            {rightTab === "video"        && <VideoPanel project={current} meta={meta} />}
+            {/* {rightTab === "video"        && <VideoPanel project={current} meta={meta} />} */}
             {rightTab === "live"         && <LivePanel project={current} meta={meta} />}
             {rightTab === "readme"       && <ReadmePanel project={current} />}
           </div>
