@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server"
 const GITHUB_USER = "Mangesh46"
 
 export interface ProjectMeta {
-  stage: "Ideation" | "In Progress" | "Completed" | "Archived"
+  stage: "Ideation" | "In Progress" | "Completed" | "Deployed" | "Archived"
   stageColor: string
   updated: string
   youtubeId?: string
   youtubeUnlisted?: boolean
+  liveUrl?: string
   story?: string
   currentProgress?: string
   mermaidDiagram?: string
@@ -18,6 +19,7 @@ const STAGE_COLORS: Record<string, string> = {
   Ideation: "#f59e0b",
   "In Progress": "#3b82f6",
   Completed: "#10b981",
+  Deployed: "#06b6d4",
   Archived: "#64748b",
 }
 
@@ -44,6 +46,8 @@ function parseReadme(content: string): ProjectMeta {
     if (updatedMatch)    meta.updated         = updatedMatch[1].trim()
     if (ytMatch)         meta.youtubeId       = ytMatch[1].trim()
     if (ytUnlistedMatch) meta.youtubeUnlisted = ytUnlistedMatch[1].trim() === "true"
+    const liveUrlMatch    = metaBlock.match(/live_url:\s*(.+)/)
+    if (liveUrlMatch)    meta.liveUrl         = liveUrlMatch[1].trim()
   }
 
   const storyMatch = content.match(
