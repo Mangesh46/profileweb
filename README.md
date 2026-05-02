@@ -1,90 +1,111 @@
-# Mangesh Sarde - Portfolio
+# profileweb
 
-A professional portfolio website showcasing embedded systems, IoT, and wireless communications projects. Built with Next.js and optimized for GitHub Pages deployment.
+Personal portfolio built with **Next.js 16** — featuring a live GitHub README
+sync engine, Mermaid architecture diagrams, and a Google Drive proof-of-work system.
 
-## Live Demo
-
-**[https://mangesh46.github.io/profile](https://mangesh46.github.io/profile)**
+**Live → [profile-henna-delta.vercel.app](https://profile-henna-delta.vercel.app)**
 
 ---
 
-## Deployment to GitHub Pages (Step-by-Step)
+## How It Works
 
-### Prerequisites
-- Node.js 18+ installed
-- Git installed
-- A GitHub account
+### 1. GitHub README Sync Engine
+`app/api/readme/[repo]/route.ts`
 
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/Mangesh46/profile.git
-cd profile
+Each project card on the site is **driven by that project's own README**.
+The API route fetches `README.md` from any repo (public or private via `GITHUB_TOKEN`),
+parses a `PROFILE_CARD` metadata block, and extracts:
+
+- **Stage badge** — `Ideation / In Progress / Completed / Deployed / Archived`
+- **YouTube video** — unlisted videos embed inline; private videos show a link-out card
+- **Story & Motivation** — rendered from `## 🎯 Story & Motivation` section
+- **Current Progress** — rendered from `## 📊 Current Progress` section
+- **Mermaid architecture diagram** — auto-extracted from any ` ```mermaid ``` ` block
+
+Add this block to any project's README and it appears on the portfolio automatically:
+
+```markdown
+<!-- PROFILE_CARD
+stage: In Progress
+updated: 2025-06-01
+youtube_id: YOUR_VIDEO_ID
+youtube_unlisted: true
+live_url: https://your-demo.vercel.app
+-->
 ```
 
-### Step 2: Install Dependencies
+Cache: 5-minute revalidation. Manual refresh via the ↻ button bypasses cache with `?t=` bust.
+
+---
+
+### 2. Mermaid Architecture Diagrams
+`components/mermaid-diagram.tsx`
+
+Renders Mermaid diagrams pulled live from project READMEs.
+Dark-themed to match the site, with zoom in/out/reset controls.
+Loaded dynamically (no SSR) to keep bundle size small.
+
+---
+
+### 3. Google Drive Proof System
+`lib/useDriveProofs.ts`
+
+Certificates, awards, and internship letters are stored in a **Google Drive folder**.
+The filename *is* the card data — no database, no config file.
+Upload a file → card appears. Delete it → card disappears.
+
+**Naming convention:**
+```
+cert_{Issuer}_{Title}_{Period}.pdf
+award_{Org}_{Result}_{Year}.pdf
+internship_{Company}_{Period}.pdf
+```
+
+**Examples:**
+```
+cert_NPTEL_Applied-Linear-Algebra_Jul-Oct-2025.pdf
+cert_Google-Cloud_AI-and-ML_2025.pdf
+award_VNIT-Nagpur_2nd-Prize-Summer-School_2025.pdf
+internship_Sarvaksh-Communications_Aug-2025-to-Jan-2026.pdf
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Styling | Tailwind CSS v3 + shadcn/ui |
+| Diagrams | Mermaid.js v11 |
+| Icons | Lucide React |
+| Proofs | Google Drive API v3 |
+| Deployment | Vercel (primary) |
+
+---
+
+## Environment Variables
+
+```env
+# Required for private repo README access
+GITHUB_TOKEN=ghp_...
+
+# Required for certifications/awards section
+NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID=your_folder_id
+NEXT_PUBLIC_GOOGLE_API_KEY=your_api_key
+```
+
+---
+
+## Local Development
+
 ```bash
+git clone https://github.com/Mangesh46/profileweb.git
+cd profileweb
 npm install
-```
-
-### Step 3: Test Locally (Optional)
-```bash
+cp .env.example .env.local   # add your tokens
 npm run dev
-```
-Open [http://localhost:3000/profile](http://localhost:3000/profile) to view it.
-
-### Step 4: Build for Static Export
-```bash
-npm run build
-```
-This creates an `out` folder with all static files.
-
-### Step 5: Push to GitHub
-```bash
-git add .
-git commit -m "Ready for GitHub Pages"
-git push origin main
-```
-
-### Step 6: Enable GitHub Pages
-
-1. Go to your repository on GitHub: `https://github.com/Mangesh46/profile`
-2. Click **Settings** (gear icon)
-3. Scroll down to **Pages** in the left sidebar
-4. Under **Source**, select **GitHub Actions**
-5. The workflow will automatically run and deploy your site
-
-### Step 7: Access Your Site
-
-After the workflow completes (2-3 minutes), your site will be live at:
-```
-https://mangesh46.github.io/profile
-```
-
----
-
-## Manual Deployment (Alternative)
-
-If you prefer manual deployment without GitHub Actions:
-
-### Step 1: Build the Static Site
-```bash
-npm run build
-```
-
-### Step 2: Deploy the `out` Folder
-
-You can deploy the `out` folder to any static hosting:
-- **GitHub Pages**: Use `gh-pages` branch
-- **Netlify**: Drag and drop the `out` folder
-- **Vercel**: Connect the repository
-
-### Using gh-pages branch (Manual)
-```bash
-# Install gh-pages package
-npm install -D gh-pages
-
-# Add deploy script to package.json (already added)
-npm run deploy
+# http://localhost:3000
 ```
 
 ---
@@ -92,88 +113,25 @@ npm run deploy
 ## Project Structure
 
 ```
-profile/
+profileweb/
 ├── app/
-│   ├── globals.css      # Global styles & Tailwind config
-│   ├── layout.tsx       # Root layout
-│   └── page.tsx         # Main portfolio page
+│   ├── api/readme/[repo]/route.ts   # GitHub README fetch + parse engine
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
 ├── components/
-│   ├── architecture/    # Project architecture diagrams
-│   ├── ui/              # shadcn/ui components
-│   └── *.tsx            # Section components
-├── .github/
-│   └── workflows/
-│       └── deploy.yml   # GitHub Actions deployment
-├── next.config.mjs      # Next.js config for static export
-└── package.json
+│   ├── github-readme-project.tsx    # Project card with tabs + stage badge
+│   ├── mermaid-diagram.tsx          # Diagram renderer with zoom controls
+│   ├── *-architecture.tsx           # Per-project static architecture fallbacks
+│   └── ...                          # Section components
+└── lib/
+    └── useDriveProofs.ts            # Google Drive file → proof card parser
 ```
-
----
-
-## Configuration
-
-### Changing the Base Path
-
-If your repository name is different from `profile`, update these files:
-
-**next.config.mjs:**
-```js
-basePath: '/your-repo-name',
-assetPrefix: '/your-repo-name',
-```
-
-**.github/workflows/deploy.yml:**
-```yaml
-destination_dir: your-repo-name
-```
-
----
-
-## Technologies Used
-
-- **Framework**: Next.js 14 (Static Export)
-- **Styling**: Tailwind CSS v4
-- **UI Components**: shadcn/ui
-- **Icons**: Lucide React
-- **Deployment**: GitHub Pages
-
----
-
-## Features
-
-- Fully static - No backend required
-- Responsive design - Mobile-first approach
-- Interactive architecture diagrams
-- Telecom/Qualcomm-inspired theme
-- Dark mode optimized
-- SEO optimized
-
----
-
-## Customization
-
-### Update Personal Information
-
-Edit the components in `/components/` folder:
-- `hero-section.tsx` - Name, title, stats
-- `contact-section.tsx` - Email, LinkedIn, GitHub links
-- `projects-section.tsx` - Project details
-- `competitions-section.tsx` - Hackathon achievements
-
-### Update Theme Colors
-
-Edit `app/globals.css` to change the color scheme.
-
----
-
-## License
-
-MIT License - Feel free to use this template for your own portfolio.
 
 ---
 
 ## Contact
 
-- **Email**: sardemangesh92@gmail.com
+- **Email**: mangeshsarde6@gmail.com
 - **LinkedIn**: [linkedin.com/in/mangesh-sarde](https://linkedin.com/in/mangesh-sarde)
 - **GitHub**: [github.com/Mangesh46](https://github.com/Mangesh46)
