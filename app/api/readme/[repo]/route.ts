@@ -9,6 +9,7 @@ export interface ProjectMeta {
   youtubeId?: string
   youtubeUnlisted?: boolean
   liveUrl?: string
+  tabs?: string[]
   story?: string
   currentProgress?: string
   mermaidDiagram?: string
@@ -48,6 +49,8 @@ function parseReadme(content: string): ProjectMeta {
     if (ytUnlistedMatch) meta.youtubeUnlisted = ytUnlistedMatch[1].trim() === "true"
     const liveUrlMatch    = metaBlock.match(/live_url:\s*(.+)/)
     if (liveUrlMatch)    meta.liveUrl         = liveUrlMatch[1].trim()
+    const tabsMatch       = metaBlock.match(/tabs:\s*(.+)/)
+    if (tabsMatch)       meta.tabs            = tabsMatch[1].split(",").map(t => t.trim()).filter(Boolean)
   }
 
   const storyMatch = content.match(

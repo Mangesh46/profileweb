@@ -147,23 +147,23 @@ const projects: Project[] = [
 type TabDef = { id: RightTab; label: string; icon: React.ReactNode; badge?: string }
 
 function getTabsForProject(project: Project, meta?: ProjectMeta | null): TabDef[] {
-  const tabs: TabDef[] = [
-    { id: "architecture", label: "Architecture", icon: <LayoutGrid className="w-3.5 h-3.5" /> },
-  ]
-  // Show the video tab for hardware projects always (placeholder shown until meta loads)
-  if (project.type === "hardware") {
-    tabs.push({ id: "video", label: "Demo Video", icon: <Play className="w-3.5 h-3.5" /> })
+  const all: Record<string, TabDef> = {
+    architecture: { id: "architecture", label: "Architecture", icon: <LayoutGrid className="w-3.5 h-3.5" /> },
+    video:        { id: "video",        label: "Demo Video",   icon: <Play className="w-3.5 h-3.5" /> },
+    live:         { id: "live",         label: "Live Demo",    icon: <Globe className="w-3.5 h-3.5" /> },
+    readme:       { id: "readme",       label: "Story & Status", icon: <Box className="w-3.5 h-3.5" />, badge: "LIVE" },
   }
-  // Show live tab for website projects always (placeholder shown until meta loads)
-  if (project.type === "website") {
-    tabs.push({ id: "live", label: "Live Demo", icon: <Globe className="w-3.5 h-3.5" /> })
+
+  // README declares the tab order — zero code deploy needed to change it
+  if (meta?.tabs && meta.tabs.length > 0) {
+    return meta.tabs.map(t => all[t]).filter(Boolean) as TabDef[]
   }
-  tabs.push({
-    id: "readme",
-    label: "Story & Status",
-    icon: <Box className="w-3.5 h-3.5" />,
-    badge: "LIVE",
-  })
+
+  // Fallback: legacy type-based logic for READMEs that don't have a tabs field yet
+  const tabs: TabDef[] = [all.architecture]
+  if (project.type === "hardware") tabs.push(all.video)
+  if (project.type === "website")  tabs.push(all.live)
+  tabs.push(all.readme)
   return tabs
 }
 
